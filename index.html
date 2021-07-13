@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .line{
+            width: 100%;
+            height: 1px;
+            background: salmon;
+            margin:20px 0;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-scope>
+    <p> General use </p>
+    {{ count }} || {{plusOne}}
+    <button @mounted="console.log('button mounted')" @click="count++">inc</button>
+    <button @click="increment">inc by methods</button>
+    <div class="line"></div>
+    <p v-if="show">directive</p>
+    <button @click="show=true">show word</button>
+    <button @click="show=false">hide word</button>
+    <p>v-effect</p>
+    <div v-effect="$el.textContent = count"></div>
+    <div class="line"></div>
+    <p>Components</p>
+    <template id="reducer-template">
+        My reducer is {{ count2 }}
+        <button @click="dec">--</button>
+    </template>
+    <div v-scope="Reducer({ initialCount: 2 })"></div>
+    <div class="line"></div>
+    <p>Vuex</p>
+    <div v-scope="store">
+        {{count3}}
+        <button @click="inc2">++</button>
+    </div>
+    <div class="line"></div>
+    <p>directive</p>
+    <p v-my-html></p>
+</div>
+</body>
+<script type="module">
+    //https://github.com/vuejs/petite-vue#readme
+    import { createApp,reactive } from 'https://unpkg.com/petite-vue?module'
+    function Reducer(props) {
+        return {
+            $template: '#reducer-template',
+            count2: props.initialCount,
+            dec() {
+                this.count2--
+            },
+            mounted() {
+                console.log(`reducer  mounted!`)
+            }
+        }
+    }
+    const store = reactive({
+        count3: 0,
+        inc2() {
+            this.count3++
+        }
+    })
+    const myDirective = (ctx) => {
+        // the element the directive is on
+        // ctx.el
+        // the raw value expression
+        // e.g. v-my-dir="x" then this would be "x"
+        // ctx.exp
+        // v-my-dir:foo -> "foo"
+        // ctx.arg
+        // v-my-dir.mod -> { mod: true }
+        // ctx.modifiers
+        // evaluate the expression and get its value
+        // ctx.get()
+        // evaluate arbitrary expression in current scope
+        // ctx.get(`${ctx.exp} + 10`)
+
+        // run reactive effect
+        ctx.effect(() => {
+            // this will re-run every time the get() value changes
+            console.log(ctx.get())
+            ctx.el.innerHTML= '123'
+        })
+
+        return () => {
+            // cleanup if the element is unmounted
+        }
+    }
+    createApp({
+        count:0,
+        show:false,
+        // computed
+        get plusOne(){
+            return this.count + 1
+        },
+        increment() {
+            this.count++
+        },
+        Reducer,
+        store
+    }).directive('my-html', myDirective).mount('#app')
+</script>
+</html>
